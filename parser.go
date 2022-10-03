@@ -88,10 +88,12 @@ func (p *RuleParser) Parse(r io.Reader) ([]*Rule, error) {
 	var rule *rulespec
 
 	pp := loon.NewParser(r)
-	for pp.Next() {
+	doc, err := pp.Parse()
+	if err != nil {
+		return nil, err
+	}
 
-		obj := pp.Object()
-
+	for _, obj := range doc.Objects {
 		if obj.Type != "rule" {
 			return nil, fmt.Errorf("unexpected token at line %d (expecting a rule to be started)", obj.Line)
 		}
@@ -251,10 +253,6 @@ func (p *RuleParser) Parse(r io.Reader) ([]*Rule, error) {
 		ruleIndex[rule.Name] = rule
 	}
 
-	if pp.Err() != nil {
-		return nil, pp.Err()
-	}
-
 	var rules []*Rule
 	for _, r := range rulespecs {
 		if r.onFailRuleName != "" {
@@ -284,9 +282,12 @@ func (p *ResourceParser) Parse(r io.Reader) ([]*Resource, error) {
 	var res *Resource
 
 	pp := loon.NewParser(r)
-	for pp.Next() {
-		obj := pp.Object()
+	doc, err := pp.Parse()
+	if err != nil {
+		return nil, err
+	}
 
+	for _, obj := range doc.Objects {
 		if obj.Type != "resource" {
 			return nil, fmt.Errorf("unexpected token at line %d (expecting a resource to be started)", obj.Line)
 		}
@@ -313,8 +314,5 @@ func (p *ResourceParser) Parse(r io.Reader) ([]*Resource, error) {
 
 	}
 
-	if pp.Err() != nil {
-		return nil, pp.Err()
-	}
 	return resources, nil
 }
